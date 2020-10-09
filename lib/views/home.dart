@@ -4,6 +4,8 @@ import 'package:daily_news/helper/news.dart';
 import 'package:daily_news/loadingBar/loading.dart';
 import 'package:daily_news/model/article_model.dart';
 import 'package:daily_news/model/category_model.dart';
+import 'package:daily_news/views/article_view.dart';
+import 'package:daily_news/views/category_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +65,7 @@ class _HomeState extends State<Home> {
             )
           : SingleChildScrollView(
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   children: [
                     ///Categories....
@@ -84,16 +86,21 @@ class _HomeState extends State<Home> {
 
                     ///Blogs....
                     Container(
-                      height: MediaQuery.of(context).size.height*.79,
-                      padding: EdgeInsets.only(top: 16.0),
+                      //height: MediaQuery.of(context).size.height, ///it takes whole display size
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height*.80, ///it takes 80% of display size
+                      padding: EdgeInsets.only(top: 10.0),
                       child: ListView.builder(
                           shrinkWrap: true,
+                          physics: ClampingScrollPhysics(), ///to smooth the scrolling
                           itemCount: articles.length,
                           itemBuilder: (context, index) {
                             return BlogTile(
                                 imageUrl: articles[index].urlToImage,
                                 title: articles[index].title,
-                                desc: articles[index].description);
+                                desc: articles[index].description,
+                                url: articles[index].url,
+                            );
                           }),
                     ),
                   ],
@@ -105,14 +112,16 @@ class _HomeState extends State<Home> {
 }
 
 class CategoryTile extends StatelessWidget {
-  final imageUrl, categoryName;
+  final String imageUrl, categoryName;
 
   CategoryTile({this.imageUrl, this.categoryName});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => CategoryView(category: categoryName.toLowerCase(),headline: categoryName,)));
+      },
       child: Container(
         margin: EdgeInsets.only(right: 16),
         child: Stack(
@@ -155,31 +164,47 @@ class CategoryTile extends StatelessWidget {
 }
 
 class BlogTile extends StatelessWidget {
-  final String imageUrl, title, desc;
+  final String imageUrl, title, desc, url;
 
   BlogTile(
-      {@required this.imageUrl, @required this.title, @required this.desc});
+      {@required this.imageUrl, @required this.title, @required this.desc,@required this.url});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          CachedNetworkImage(
-            placeholder: (context, url) => Container(
-              child: circleSpin(),
-              width: 50.0,
-              height: 50.0,
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ArticleView(blogUrl: url,)));
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.0),
+        child: Column(
+          children: <Widget>[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: CachedNetworkImage(
+                placeholder: (context, url) => Container(
+                  child: circleSpin(),
+                  width: 150.0,
+                  height: 150.0,
+                ),
+                //width: 300.0,
+                // height: 60.0,
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+              ),
             ),
-            //width: 300.0,
-            // height: 60.0,
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-          ),
-          //Image.network(imageUrl),
-          Text(title),
-          Text(desc),
-        ],
+            SizedBox(height: 8.0,),
+            //Image.network(imageUrl),
+            Text(title, style: TextStyle(
+              fontSize: 18.0,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),),
+            Text(desc, style: TextStyle(
+              color: Colors.grey[700]
+            ),),
+          ],
+        ),
       ),
     );
   }
